@@ -1,0 +1,55 @@
+# RewardLab Configuration
+# Full RLHF pipeline hyperparameters
+
+model:
+  base_model: "gpt2"
+  tokenizer: "gpt2"
+  max_seq_len: 512
+
+reward_model:
+  lr: 1.0e-5
+  weight_decay: 0.01
+  warmup_steps: 100
+  epochs: 3
+  hidden_size: 768
+  dropout: 0.1
+
+ppo:
+  lr: 1.0e-5
+  kl_coef: 0.1
+  clip_ratio: 0.2
+  value_loss_coef: 0.5
+  entropy_coef: 0.01
+  max_grad_norm: 1.0
+  ppo_epochs: 4
+  target_kl: 0.1
+  gamma: 1.0
+  lam: 0.95
+  training_steps: 1000
+  checkpoint_every: 100
+
+training:
+  batch_size: 16
+  mini_batch_size: 4
+  seed: 42
+  device: "cuda"
+  fp16: false
+  gradient_accumulation_steps: 1
+
+data:
+  preferences_path: "data/preferences.jsonl"
+  n_pairs: 1000
+  val_split: 0.1
+  train_path: "data/train.jsonl"
+  val_path: "data/val.jsonl"
+
+logging:
+  use_wandb: false
+  wandb_project: "reward_lab"
+  log_every: 10
+  eval_every: 100
+
+checkpoints:
+  save_dir: "checkpoints/"
+  reward_model_path: "checkpoints/reward_model.pt"
+  policy_model_path: "checkpoints/policy_model.pt"
