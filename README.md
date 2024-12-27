@@ -147,6 +147,26 @@ The plot `eval/ablation_kl.png` shows the reward-KL tradeoff curve:
 
 **KL divergence** should stay controlled (< `target_kl`) if `kl_coef` is tuned correctly.
 
+## Evaluation
+
+`eval/metrics.py` exposes the metrics tracked through training and the ablation study; `eval/ablation.py` runs the KL coefficient sweep.
+
+| Metric | What it measures | How it is computed |
+|--------|------------------|---------------------|
+| Reward model **accuracy** | Fraction of `(chosen, rejected)` validation pairs where `r(chosen) > r(rejected)`. | Pairwise comparison on the held-out preference split inside `train_reward_model.py`. |
+| Reward model **loss** | Bradley-Terry / logistic loss `−log σ(r_chosen − r_rejected)`. | Computed per batch in `models/reward_model.py`. |
+| Mean **reward** during PPO | Sample-mean of the reward model's score on rollouts, with std over the batch. | Tracked per PPO step in `scripts/ppo_trainer.py`. |
+| **KL divergence** vs frozen reference | `KL(π_θ ‖ π_ref)` over generated tokens. | Token-level log-prob diff in `models/policy_model.py`. |
+| Policy **clip fraction** / loss | Fraction of samples where the surrogate ratio is clipped at `1±ε`; PPO surrogate loss. | Standard PPO bookkeeping in `ppo_trainer.py`. |
+| **Reward-vs-KL** Pareto curve | Trade-off across `kl_coef` values. | `eval/ablation.py` writes `eval/ablation_results.json` and `eval/ablation_kl.png`. |
+
+Run the reward-model evaluation explicitly:
+
+```bash
+python -m scripts.train_reward_model --config configs/config.yaml --data data/preferences.jsonl --eval-only \
+  --checkpoint checkpoints/reward_model_best.pt
+```
+
 ## Key Design Decisions
 
 - **Bradley-Terry loss**: Models pairwise preferences as `P(chosen > rejected) = σ(r_chosen - r_rejected)`. This is more stable than pointwise regression.
